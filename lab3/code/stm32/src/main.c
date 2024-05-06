@@ -16,9 +16,14 @@
 
 #include "cpx_internal_router.h"
 
+static logVarId_t logIdPmState;
+static bool terminateTrajectoryAndLand = false;
+
+static bool isBatLow(){
+  return logGetInt(logIdPmState) == lowPower;
+}
 
 void receive_app_msg(const CPXPacket_t* cpxRx) {
-
   DEBUG_PRINT("CL FREQ = %d\n", *(int *)(cpxRx->data));
 }
 
@@ -30,7 +35,9 @@ void appMain() {
   cpxRegisterAppMessageHandler(receive_app_msg);
 
   while(1) {
-    
+    if(isBatLow()){
+      terminateTrajectoryAndLand = true;
+    }
     vTaskDelay(M2T(100));    
   }
 }
