@@ -13,7 +13,6 @@
 #include "pm.h"
 #include "log.h"
 
-
 #include "cpx_internal_router.h"
 
 static logVarId_t logIdPmState;

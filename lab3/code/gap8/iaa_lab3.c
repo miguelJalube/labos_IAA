@@ -8,7 +8,9 @@
 #define IMG_ORIENTATION 0x0101
 #define CAM_WIDTH 324
 #define CAM_HEIGHT 244
-#define BUFFER_SIZE 1
+#define CROP_WIDTH 200
+#define CROP_HEIGHT 200
+#define BUFFER_SIZE 40
 #define N_CHARS 1020
 #define CAPTURE_DONE_BIT (1 << 0)
 
@@ -76,7 +78,7 @@ void start(void) {
     BaseType_t xTask;
 
     vTaskDelay(2000);
-    cpxPrintToConsole(LOG_TO_CRTP, "\n\n*** IAA LAB03 ***\n\n");
+    cpxPrintToConsole(LOG_TO_CRTP, "[LAB3]\n\n *** IAA LAB03 ! ***\n\n");
     
 
     /* Create wifi listener task */
@@ -89,15 +91,19 @@ void start(void) {
         return;
     }
 
-    imgBuff = (unsigned char *)pmsis_l2_malloc(CAM_WIDTH*CAM_HEIGHT);
     pi_buffer_init(&buffer, PI_BUFFER_TYPE_L2, imgBuff);
     pi_buffer_set_format(&buffer, CAM_WIDTH, CAM_HEIGHT, 1, PI_BUFFER_FORMAT_GRAY);
-
     
+    imgBuff = (unsigned char *)pmsis_l2_malloc(CAM_WIDTH*CAM_HEIGHT); 
+
+    uint32_t freq = pi_freq_get(PI_FREQ_DOMAIN_FC);
+    cpxPrintToConsole(LOG_TO_CRTP, "[LAB3] Frequence = %d [Hz]\n", freq);
 
     /* Create Camera task */
     xTask = xTaskCreate(camera_task, "camera_task", configMINIMAL_STACK_SIZE * 4,
                       NULL, tskIDLE_PRIORITY + 1, NULL);
+    
+    cpxPrintToConsole(LOG_TO_CRTP, "[LAB3] camera_task done!\n"); 
 
     while(1) {
         sendToSTM32();
@@ -195,6 +201,31 @@ static void capture_done_cb(void *arg) {
     xSemaphoreGive(capture_sem);
 }
 
+void cropImage(unsigned char *input, unsigned char *output) {
+    // Calcul des coordonnées x et y pour le recadrage au centre
+    int x = (CAM_WIDTH - CROP_WIDTH) / 2;
+    int y = (CAM_HEIGHT - CROP_HEIGHT) / 2;
+
+    // Vérification des dimensions de recadrage pour éviter les débordements
+    if (x < 0 || y < 0 || CROP_WIDTH <= 0 || CROP_HEIGHT <= 0 ||
+        x + CROP_WIDTH > CAM_WIDTH || y + CROP_HEIGHT > CAM_HEIGHT) {
+        printf("Invalid cropping dimensions!\n");
+        exit(1);
+    }
+
+    // Copie des pixels de l'image d'entrée vers la nouvelle image recadrée
+    for (int i = 0; i < CROP_HEIGHT; i++) {
+        for (int j = 0; j < CROP_WIDTH; j++) {
+            // Calcul de l'indice du pixel dans l'image d'entrée
+            int inputIndex = ((y + i) * CAM_WIDTH + (x + j)) * sizeof(unsigned char);
+            // Calcul de l'indice correspondant dans la nouvelle image recadrée
+            int outputIndex = (i * CROP_WIDTH + j) * sizeof(unsigned char);
+            // Copie de la valeur du pixel
+            output[outputIndex] = input[inputIndex];
+        }
+    }
+}
+
 /**
  * @brief Task enabling the acquisition/sending of an image
  * - Set the callback called at the end of a capture 
@@ -202,14 +233,24 @@ static void capture_done_cb(void *arg) {
  * - Calls the function for sending the image by wifi 
  */
 void camera_task(void *parameters) {
-    while(1){
-        BaseType_t task = xTaskCreate(capture_done_cb, "capture_done_cb", configMINIMAL_STACK_SIZE * 2,
-                      NULL, tskIDLE_PRIORITY + 1, NULL);
-        pi_camera_capture_async(&camera, imgBuff, CAM_WIDTH * CAM_HEIGHT, &task);
-        pi_camera_control(&camera, PI_CAMERA_CMD_START, 0);
-        xSemaphoreTake(capture_sem, (TickType_t) 50);
-        send_image_via_wifi(imgBuff, CAM_WIDTH, CAM_HEIGHT);
-    }
+    pi_buffer_init(&buffer, PI_BUFFER_TYPE_L2, imgBuff);
+    pi_buffer_set_format(&buffer, CAM_WIDTH, CAM_HEIGHT, 1, PI_BUFFER_FORMAT_GRAY);
+    
+    imgBuff = (unsigned char *)pmsis_l2_malloc(CAM_WIDTH*CAM_HEIGHT); 
+    unsigned char *croppedImgBuff; 
+
+    open_pi_camera_himax(&camera);
+
+    pi_task_t task;
+    pi_camera_capture_async(&camera, imgBuff, CAM_WIDTH * CAM_HEIGHT, pi_task_callback(&task, capture_done_cb, NULL));
+    pi_camera_control(&camera, PI_CAMERA_CMD_START, 0);
+    cropImage(imgBuff, croppedImgBuff);
+
+    xSemaphoreTake(capture_sem, (TickType_t) 50);
+    send_image_via_wifi(croppedImgBuff, CROP_WIDTH, CROP_HEIGHT);
+
+    pmsis_l2_malloc_free(imgBuff, CAM_WIDTH*CAM_HEIGHT);
+
 }
 
 int open_pi_camera_himax(struct pi_device *device)
