@@ -9,7 +9,13 @@ ESP32
 **What happens when you connect 2 clients to the GAP8 ? Is it an expected behavior ?**
 Impossible de connecter 2 clients. le protocole est fait pour supporter 1 seul client.
 **What is the max packet size ?**
--
+-   By printing sizeof(CPXPacket_t) we obtain 1040 B. Which is the max size of a packet.
+-   The max size of the datas refering to `uint8_t data[MTU-CPX_HEADER_SIZE];` is :
+    ```
+    Data Size   = MTU   - CPX_HEADER_SIZE 
+                = 1022  - 2 
+                = 1020
+    ```
 **Explain your implementation of the communication protocol.**
 1. Imports: Import necessary libraries such as argparse, time, socket, os, struct, numpy, and cv2 (OpenCV).
 2. Argument Parsing: Parse command-line arguments to specify the IP address (-n) and port (-p) of the server. There's also an optional argument --save which, when present, indicates that the received images should be saved.
@@ -32,3 +38,7 @@ Enfin, l'algorithme copie les pixels de l'image d'entrée qui se trouvent dans l
 
 **What is the shape of the original image ?**
 324x244
+
+## Commentaires sur le laboratoire
+
+Le laboratoire crash lors de la création de la camera task.

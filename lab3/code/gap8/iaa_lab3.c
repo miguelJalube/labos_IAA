@@ -98,6 +98,7 @@ void start(void) {
 
     uint32_t freq = pi_freq_get(PI_FREQ_DOMAIN_FC);
     cpxPrintToConsole(LOG_TO_CRTP, "[LAB3] Frequence = %d [Hz]\n", freq);
+    cpxPrintToConsole(LOG_TO_CRTP, "[LAB3] Size of packet = %d [B]\n", sizeof(CPXPacket_t));
 
     /* Create Camera task */
     xTask = xTaskCreate(camera_task, "camera_task", configMINIMAL_STACK_SIZE * 4,
@@ -233,6 +234,8 @@ void cropImage(unsigned char *input, unsigned char *output) {
  * - Calls the function for sending the image by wifi 
  */
 void camera_task(void *parameters) {
+    cpxPrintToConsole(LOG_TO_CRTP, "[LAB3] Camera task A\n");
+
     pi_buffer_init(&buffer, PI_BUFFER_TYPE_L2, imgBuff);
     pi_buffer_set_format(&buffer, CAM_WIDTH, CAM_HEIGHT, 1, PI_BUFFER_FORMAT_GRAY);
     
@@ -241,13 +244,21 @@ void camera_task(void *parameters) {
 
     open_pi_camera_himax(&camera);
 
+    cpxPrintToConsole(LOG_TO_CRTP, "[LAB3] Camera task B\n");
+
     pi_task_t task;
     pi_camera_capture_async(&camera, imgBuff, CAM_WIDTH * CAM_HEIGHT, pi_task_callback(&task, capture_done_cb, NULL));
     pi_camera_control(&camera, PI_CAMERA_CMD_START, 0);
     cropImage(imgBuff, croppedImgBuff);
 
+
+    cpxPrintToConsole(LOG_TO_CRTP, "[LAB3] Camera task C\n");
+
     xSemaphoreTake(capture_sem, (TickType_t) 50);
     send_image_via_wifi(croppedImgBuff, CROP_WIDTH, CROP_HEIGHT);
+
+
+    cpxPrintToConsole(LOG_TO_CRTP, "[LAB3] Camera task D\n");
 
     pmsis_l2_malloc_free(imgBuff, CAM_WIDTH*CAM_HEIGHT);
 
