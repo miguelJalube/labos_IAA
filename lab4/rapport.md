@@ -7,20 +7,65 @@
 - 3-sigma range : -0.0024 - 3 * 0.0429 = -0.1311 ; -0.0024 + 3 * 0.0429 = 0.1263
                     = [-0.1311 ; 0.1263]
 **Explain which range you used for your quantization. Does range have an impact on model performance in this case ? Explain your answer.**
-We used the 3-sigma range for our quantization. The range has an impact on the model performance because it determines the precision of the weights. If the range is too small, the weights will be quantized with a high precision, but the model will be more sensitive to noise. If the range is too large, the weights will be quantized with a low precision, but the model will be less sensitive to noise. In this case, the 3-sigma range is a good compromise between precision and noise sensitivity.
+We used the 3-sigma range for our quantization. The range has an impact on the model performance because it determines the precision of the weights. If the range is too small, the weights will be quantized and will have less precision.
 
 **Do you observe a drop in the general accuracy ? If you did everything right, it should be negligible. Explain your findings**
-The accuracy droped from 52.6% to 10% when we quantized the weights. The drop in accuracy is not negligible.
+The accuracy droped from 53.68% to 49.56% when we quantized the weights. The drop in accuracy is small but not negligible.
 
 **Compare the memory footprint of the original model and the quantized one. Did the memory footprint change ? Explain your findings. You can use torchinfo or torch-summary to get the memory footprint.**
 The memory footprint didnt change when we quantized the weights.
 
 ## Stage 2
 **Record the range of the activations, as well as their 3-sigma range.**
-Range:  [-1.0 ; 1.0]
-Mean:  -0.041726678633717006
-Sigma:  0.492975506897684
-3-sigma range:  [-1.5206532984270859 ; 1.437200941159651]
+
+Input
+Min weight:  -1.0
+Max weight:  1.0
+Mean:  -0.04456801918857207
+Sigma:  0.5007391339605283
+Mean - 3 sigma:  -1.5467854210701568
+Mean + 3 sigma:  1.4576493826930128
+
+Conv1
+Min weight:  0.0
+Max weight:  10.015969276428223
+Mean:  0.5392608588071649
+Sigma:  0.7935812573396501
+Mean - 3 sigma:  -1.8414829132117854
+Mean + 3 sigma:  2.9200046308261154
+
+Conv2
+Min weight:  0.0
+Max weight:  15.086922645568848
+Mean:  0.6547757158195966
+Sigma:  1.0954099252933234
+Mean - 3 sigma:  -2.6314540600603733
+Mean + 3 sigma:  3.941005491699567
+
+Fc1
+Min weight:  0.0
+Max weight:  10.567023277282715
+Mean:  0.382443176894174
+Sigma:  0.872996524804433
+Mean - 3 sigma:  -2.2365463975191253
+Mean + 3 sigma:  3.001432751307473
+
+Fc2
+Min weight:  0.0
+Max weight:  6.216141223907471
+Mean:  0.29708697306463616
+Sigma:  0.6021290853042156
+Mean - 3 sigma:  -1.5093002828480107
+Mean + 3 sigma:  2.1034742289772828
+
+Ffc3
+Min weight:  -6.304019451141357
+Max weight:  8.841646194458008
+Mean:  0.023744911157715105
+Sigma:  1.9384469447107846
+Mean - 3 sigma:  -5.791595922974638
+Mean + 3 sigma:  5.839085745290069
+
 
 **Develop a formula for the quantized output of conv1 : O1q, as a function of sW 1, sO1, sI , Iq, W1q.**
 
