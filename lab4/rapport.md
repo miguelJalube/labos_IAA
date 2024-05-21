@@ -10,7 +10,7 @@
 We used the 3-sigma range for our quantization. The range has an impact on the model performance because it determines the precision of the weights. If the range is too small, the weights will be quantized and will have less precision.
 
 **Do you observe a drop in the general accuracy ? If you did everything right, it should be negligible. Explain your findings**
-The accuracy droped from 53.68% to 49.56% when we quantized the weights. The drop in accuracy is small but not negligible.
+The accuracy didn't change from 54.61 to 54.95% when we quantized the weights.
 
 **Compare the memory footprint of the original model and the quantized one. Did the memory footprint change ? Explain your findings. You can use torchinfo or torch-summary to get the memory footprint.**
 The memory footprint didnt change when we quantized the weights.
