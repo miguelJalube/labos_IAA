@@ -71,9 +71,13 @@ Mean + 3 sigma:  5.839085745290069
 
 (Not sure about the formula)
 
-$$ O1q = \frac{\frac{127}{\max(|\min(Iq)|, |\max(Iq)|)}}{sW1 \times sI \times \prod_{i=1}^{n} (s_{W_i} \times s_{O_i})} $$
+$$ O1q = \frac{SI(i - 1)\times SWi}{SOi} \times (I{(i-1)q \times Wiq}) $$
 
 **Develop a general formula for the quantized output of convi : Oiq, as a function of sW i, sOi, sI , Iq, Wiq, and the scaling factors of the previous layers. Try to do it recursively by starting with conv2q to extract the formula**
+
+$$ Stotal = SW1 \times SO1 \times SW2 \times SO2 \times ... \times SW(i-1) \times SO(i-1) \times SWi \times SOi $$
+
+$$ Oiq = \frac{Stotal}{SOi} \times (I{(i-1)q \times Wiq}) $$
 
 ## Stage 3
 **What’s the objective of the adjust command ?**
