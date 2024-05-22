@@ -82,22 +82,22 @@ $$ Oiq = \frac{Stotal}{SOi} \times (I{(i-1)q \times Wiq}) $$
 ## Stage 3
 **What’s the objective of the adjust command ?**
 
--
+- It is used to change the tensor format
 
 **With the help of the nnTool documentation 1, provide the right command for layer fusions.**
 
--
+- the command is `fusion --scale8`
 
 **Which layers have been fused ?**
--
+- 
 
 **Based on the first parts of this lab, explain why we need a set of images for our quantization**
 
--
+- So we can train and test the model until we obtain a good accuracy
 
 **What should be the properties of this set of images ? Think in terms of diversity of images**
 
--
+- The images must reflect exactly the world state we want to modelize
 
 **What should be the properties of this set of images ? Think in terms of diversity of images**
 
